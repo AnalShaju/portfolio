@@ -177,6 +177,7 @@ export function SiteDock() {
                       ? undefined
                       : "noopener noreferrer"
                   }
+                  draggable={false}
                   className={linkClass}
                 >
                   <Icon className={iconClass} />
@@ -187,6 +188,7 @@ export function SiteDock() {
                   aria-label={item.label}
                   aria-current={isActive ? "location" : undefined}
                   title={item.label}
+                  draggable={false}
                   className={linkClass}
                 >
                   <Icon className={iconClass} />

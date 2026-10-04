@@ -238,6 +238,13 @@
   color: #fafafa;
 }
 
+.dock a,
+.dock button,
+.dock svg {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 .dock-item svg {
   transform: scale(var(--dock-icon-scale, 1));
   transform-origin: center;

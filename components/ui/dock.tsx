@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import {
   motion,
   MotionValue,
@@ -12,14 +12,18 @@ import type { MotionProps, MotionStyle } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
-const DEFAULT_MAX_SCALE = 1.5
+const DEFAULT_MAX_SCALE = 1.62
+/* Falloff per slot of distance (0.5 → neighbours get half the boost) */
+const FALLOFF_BASE = 0.5
+/* Boost below this fraction fades to zero so far icons rest at exactly 1 */
+const FALLOFF_FLOOR = 0.08
 /* Movement (px) before a touch press counts as a scrub rather than a tap */
-const DRAG_THRESHOLD = 8
+const DRAG_THRESHOLD = 6
 /* Window after a scrub ends during which the trailing click is swallowed */
 const CLICK_SUPPRESS_MS = 400
 
-/* Apple critically-damped springs — settle smoothly, no bounce (response ~0.35s) */
-const iconSpring = { stiffness: 420, damping: 38, mass: 0.7, restDelta: 0.001 }
+/* Apple critically-damped springs — settle smoothly, no bounce */
+const iconSpring = { stiffness: 380, damping: 34, mass: 0.6, restDelta: 0.001 }
 const lensSpring = { stiffness: 380, damping: 36, mass: 0.75 }
 const lensFade = { stiffness: 280, damping: 34, mass: 0.6 }
 
@@ -32,6 +36,8 @@ const glassStyle: React.CSSProperties = {
   WebkitBackdropFilter: "blur(28px) saturate(180%)",
   backdropFilter: "blur(28px) saturate(180%)",
 }
+
+type ScaleAt = (index: number, x: number) => number
 
 export interface DockProps {
   className?: string
@@ -62,8 +68,33 @@ function Dock({
   const offTimer = useRef<number | undefined>(undefined)
   const press = useRef<TouchPress | null>(null)
   const suppressClickUntil = useRef(0)
+  const centers = useRef<number[]>([])
+  const pitch = useRef(0)
 
   useEffect(() => () => window.clearTimeout(offTimer.current), [])
+
+  const measure = () => {
+    const items = ref.current?.querySelectorAll<HTMLElement>("[data-dock-item]")
+    if (!items?.length) return
+    centers.current = Array.from(items, (el) => {
+      const r = el.getBoundingClientRect()
+      return r.left + r.width / 2
+    })
+    const c = centers.current
+    pitch.current =
+      c.length > 1 ? (c[c.length - 1] - c[0]) / (c.length - 1) : items[0].offsetWidth
+  }
+
+  const scaleAt = useCallback<ScaleAt>(
+    (index, x) => {
+      const center = centers.current[index]
+      if (!Number.isFinite(x) || center === undefined || pitch.current <= 0) return 1
+      const f = Math.pow(FALLOFF_BASE, Math.abs(x - center) / pitch.current)
+      const boost = Math.max(0, (f - FALLOFF_FLOOR) / (1 - FALLOFF_FLOOR))
+      return 1 + (maxScale - 1) * boost
+    },
+    [maxScale]
+  )
 
   const engage = () => {
     window.clearTimeout(offTimer.current)
@@ -87,9 +118,14 @@ function Dock({
     offTimer.current = window.setTimeout(() => setLensOn(false), 320)
   }
 
+  const handlePointerEnter = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (interactive && e.pointerType === "mouse") measure()
+  }
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!interactive || e.pointerType === "mouse") return
+    if (!interactive || e.pointerType === "mouse" || !e.isPrimary) return
     press.current = { id: e.pointerId, startX: e.clientX, dragged: false }
+    measure()
     engage()
     track(e.clientX)
   }
@@ -97,6 +133,7 @@ function Dock({
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!interactive) return
     if (e.pointerType === "mouse") {
+      if (!centers.current.length) measure()
       engage()
       track(e.clientX)
       return
@@ -105,6 +142,8 @@ function Dock({
     if (!p || p.id !== e.pointerId) return
     if (!p.dragged && Math.abs(e.clientX - p.startX) > DRAG_THRESHOLD) {
       p.dragged = true
+      // Own the gesture from here on, whichever item received the press.
+      ref.current?.setPointerCapture(e.pointerId)
     }
     track(e.clientX)
   }
@@ -113,6 +152,9 @@ function Dock({
     const p = press.current
     if (!p || p.id !== e.pointerId) return
     if (p.dragged) suppressClickUntil.current = performance.now() + CLICK_SUPPRESS_MS
+    if (ref.current?.hasPointerCapture(e.pointerId)) {
+      ref.current.releasePointerCapture(e.pointerId)
+    }
     press.current = null
     release()
   }
@@ -129,12 +171,19 @@ function Dock({
     }
   }
 
+  // Long-press menus and native link drags would cancel the pointer mid-scrub.
+  const preventDuringPress = (e: React.SyntheticEvent) => {
+    if (press.current || e.type === "dragstart") e.preventDefault()
+  }
+
+  let index = 0
   const rendered = React.Children.map(children, (child) => {
     if (React.isValidElement<DockIconProps>(child) && child.type === DockIcon) {
       return React.cloneElement(child, {
         ...child.props,
+        index: index++,
         pointerX,
-        maxScale,
+        scaleAt,
         disableMagnification: !interactive,
         pressable,
       })
@@ -145,14 +194,17 @@ function Dock({
   return (
     <div
       ref={ref}
+      onPointerEnter={handlePointerEnter}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
       onPointerLeave={handlePointerLeave}
       onClickCapture={handleClickCapture}
+      onContextMenu={preventDuringPress}
+      onDragStart={preventDuringPress}
       className={cn(
-        "relative flex touch-none items-center rounded-full select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]",
+        "dock relative flex touch-none items-center rounded-full select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none]",
         className
       )}
     >
@@ -174,7 +226,8 @@ Dock.displayName = "Dock"
 
 export interface DockIconProps
   extends Omit<MotionProps & React.HTMLAttributes<HTMLDivElement>, "children"> {
-  maxScale?: number
+  index?: number
+  scaleAt?: ScaleAt
   disableMagnification?: boolean
   pointerX?: MotionValue<number>
   pressable?: boolean
@@ -183,8 +236,11 @@ export interface DockIconProps
   children?: React.ReactNode
 }
 
+const restScale: ScaleAt = () => 1
+
 function DockIcon({
-  maxScale = DEFAULT_MAX_SCALE,
+  index = 0,
+  scaleAt = restScale,
   disableMagnification,
   pointerX,
   pressable = true,
@@ -193,23 +249,15 @@ function DockIcon({
   children,
   ...props
 }: DockIconProps) {
-  const ref = useRef<HTMLDivElement>(null)
   const idleX = useMotionValue(Infinity)
-
-  // Halves with every slot-width of distance: ~1.5 → ~1.25 → ~1.1 → 1.
-  const scaleTarget = useTransform(pointerX ?? idleX, (x: number) => {
-    if (disableMagnification || !Number.isFinite(x) || !ref.current) return 1
-    const { left, width } = ref.current.getBoundingClientRect()
-    if (width === 0) return 1
-    const falloff = Math.pow(0.5, Math.abs(x - left - width / 2) / width)
-    return falloff < 0.04 ? 1 : 1 + (maxScale - 1) * falloff
-  })
-
+  const scaleTarget = useTransform(pointerX ?? idleX, (x: number) =>
+    disableMagnification ? 1 : scaleAt(index, x)
+  )
   const iconScale = useSpring(scaleTarget, iconSpring)
 
   return (
     <motion.div
-      ref={ref}
+      data-dock-item
       style={{ "--dock-icon-scale": iconScale } as unknown as MotionStyle}
       whileTap={pressable ? { scale: 0.97 } : undefined}
       transition={{ type: "spring", bounce: 0, duration: 0.3 }}
