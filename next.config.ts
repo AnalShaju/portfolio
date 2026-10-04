@@ -1,7 +1,18 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  turbopack: {
+    root: process.cwd(),
+  },
+  async redirects() {
+    return [
+      {
+        source: "/projects",
+        destination: "/#projects",
+        permanent: true,
+      },
+    ]
+  },
+}
 
-export default nextConfig;
+export default nextConfig

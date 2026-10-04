@@ -1,26 +1,531 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-status: var(--status);
+  --color-status-foreground: var(--status-foreground);
+  --font-sans: var(--font-public-sans);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: #fafaf8;
+  --foreground: #171715;
+  --muted: #f0efe9;
+  --muted-foreground: #6f6f68;
+  --border: #e6e4dd;
+  --ring: #35473b;
+  --accent: #f0efe9;
+  --accent-foreground: #171715;
+  --status: #35473b;
+  --status-foreground: #fafaf8;
+  --stripe: color-mix(in srgb, #171715 7%, transparent);
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #fafafa;
+  --muted: #0a0a0a;
+  --muted-foreground: #8a8a85;
+  --border: rgba(255, 255, 255, 0.1);
+  --ring: #9fc2a8;
+  --accent: #0a0a0a;
+  --accent-foreground: #fafafa;
+  --status: #9fc2a8;
+  --status-foreground: #000000;
+  --stripe: color-mix(in srgb, #fafafa 7%, transparent);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth font-sans antialiased;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html.dark,
+  html.dark body {
+    background-color: #000000;
+    background-image: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Liquid glass dock. Glass and lens are siblings (not nested) because a
+   backdrop-filter ancestor would stop the lens from sampling the page.
+   Materials follow Apple depth: frost + saturate + bright top edge catch. */
+.dock-glass-base {
+  --dock-blur: blur(20px) saturate(180%);
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 9999px;
+  pointer-events: none;
+  /*
+   * Light liquid glass (Apple material recipe):
+   * rgba white ~0.55–0.6 + blur(20px) saturate(180%) + bright top edge.
+   * Outer warm-gray stroke keeps the pill readable on #fafaf8.
+   */
+  background-color: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 12px 40px -12px rgba(0, 0, 0, 0.18),
+    0 4px 14px -4px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(40, 38, 34, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(40, 38, 34, 0.04);
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  transition:
+    background-color 320ms ease-in-out,
+    border-color 320ms ease-in-out,
+    box-shadow 320ms ease-in-out !important;
+}
+
+/* Specular rim — light catching the glass */
+.dock-glass-base::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 1px;
+  height: 1px;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Micro noise — material presence on flat off-white */
+.dock-glass-base::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  mix-blend-mode: multiply;
+}
+
+.dark .dock-glass-base {
+  --dock-blur: blur(40px) saturate(180%);
+  background-color: rgba(22, 22, 22, 0.42);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 14px 40px -12px rgba(0, 0, 0, 0.75),
+    0 4px 14px -4px rgba(0, 0, 0, 0.45),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+}
+
+.dark .dock-glass-base::before {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: auto;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.02) 36%,
+    transparent 60%
+  );
+}
+
+.dark .dock-glass-base::after {
+  opacity: 0.045;
+  mix-blend-mode: soft-light;
+}
+
+.dock-lens {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 1;
+  width: 50px;
+  height: 50px;
+  margin-top: -25px;
+  border-radius: 9999px;
+  pointer-events: none;
+  will-change: transform, opacity;
+  /* Light: soft liquid lens — avoid opaque white wash */
+  background: radial-gradient(
+    circle at 50% 30%,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.04) 42%,
+    transparent 70%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(40, 38, 34, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transition:
+    background 320ms ease-in-out,
+    box-shadow 320ms ease-in-out !important;
+}
+
+.dark .dock-lens {
+  background: radial-gradient(
+    circle at 50% 30%,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.03) 45%,
+    transparent 72%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Refraction only while the cursor is over the dock; url() is Chromium-only,
+   other engines keep the plain declaration above it. */
+.dock-lens[data-on="true"] {
+  -webkit-backdrop-filter: blur(1px) brightness(1.04) saturate(1.15);
+  backdrop-filter: blur(1px) brightness(1.04) saturate(1.15);
+  backdrop-filter: url(#dock-refraction) brightness(1.04) saturate(1.15);
+}
+
+.dark .dock-lens[data-on="true"] {
+  -webkit-backdrop-filter: blur(1px) brightness(1.1) saturate(1.3);
+  backdrop-filter: blur(1px) brightness(1.1) saturate(1.3);
+  backdrop-filter: url(#dock-refraction) brightness(1.1) saturate(1.3);
+}
+
+.dock-item {
+  color: #1f1f1d;
+  transition: color 320ms ease-in-out !important;
+}
+
+.dark .dock-item {
+  color: #fafafa;
+}
+
+.dock-item svg {
+  transform: scale(var(--dock-icon-scale, 1));
+  transform-origin: center;
+  color: inherit;
+  transition: color 320ms ease-in-out !important;
+}
+
+.dock-active-pill {
+  position: absolute;
+  inset: 2px;
+  border-radius: 9999px;
+  pointer-events: none;
+  /* Light: translucent raised chip — not a solid gray disc */
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(40, 38, 34, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  transition:
+    background 320ms ease-in-out,
+    box-shadow 320ms ease-in-out !important;
+}
+
+.dark .dock-active-pill {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-lens {
+    display: none;
+  }
+
+  .dock-glass-base,
+  .dock-active-pill,
+  .dock-item,
+  .dock-item svg {
+    transition: none;
+  }
+}
+
+/* Prefer solid chrome when the OS asks for less transparency */
+@media (prefers-reduced-transparency: reduce) {
+  .dock-glass-base {
+    --dock-blur: none;
+    background-color: rgba(250, 250, 248, 0.94);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .dark .dock-glass-base {
+    background-color: rgba(12, 12, 12, 0.94);
+  }
+
+  .dock-glass-base::before,
+  .dock-glass-base::after,
+  .dock-lens {
+    display: none;
+  }
+
+  .dock-active-pill {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .section-glass-base {
+    background-color: rgba(250, 250, 248, 0.94);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .dark .section-glass-base {
+    background-color: rgba(12, 12, 12, 0.94);
+  }
+
+  .section-glass-base::before,
+  .section-glass-base::after {
+    display: none;
+  }
+}
+
+/* Section title pill — same liquid-glass recipe as the dock, scaled for labels */
+.section-glass-base {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 9999px;
+  pointer-events: none;
+  background-color: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 6px 18px -8px rgba(0, 0, 0, 0.16),
+    0 2px 6px -2px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(40, 38, 34, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(40, 38, 34, 0.04);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+}
+
+.section-glass-base::before {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 1px;
+  height: 1px;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.section-glass-base::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  mix-blend-mode: multiply;
+}
+
+.dark .section-glass-base {
+  background-color: rgba(22, 22, 22, 0.42);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 22px -10px rgba(0, 0, 0, 0.65),
+    0 2px 8px -2px rgba(0, 0, 0, 0.4),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+}
+
+.dark .section-glass-base::before {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: auto;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.03) 40%,
+    transparent 65%
+  );
+}
+
+.dark .section-glass-base::after {
+  opacity: 0.04;
+  mix-blend-mode: soft-light;
+}
+
+/* Small # mark for the Projects closing note */
+.note-glass-mark {
+  background-color: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(40, 38, 34, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+}
+
+.dark .note-glass-mark {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .note-glass-mark {
+    background-color: rgba(250, 250, 248, 0.94);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .dark .note-glass-mark {
+    background-color: rgba(12, 12, 12, 0.94);
+  }
+}
+
+/* Top banner — dot grid. The lit layer repeats the exact same grid with brighter
+   dots and is revealed only inside a soft circle around the cursor. */
+@property --dot-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+
+@property --dot-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+
+.dot-banner {
+  --dot-gap: 18px;
+  /* Light: warm editorial texture — readable on off-white, not blueprint-dark */
+  --dot-color: rgba(52, 48, 42, 0.3);
+  --dot-lit: rgba(42, 38, 32, 0.48);
+  background-color: #f8f7f4;
+  border-color: rgba(58, 54, 48, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.dark .dot-banner {
+  --dot-color: rgba(255, 255, 255, 0.26);
+  --dot-lit: rgba(255, 255, 255, 0.55);
+  background-color: #000000;
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.dot-banner-grid,
+.dot-banner-lit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-size: var(--dot-gap) var(--dot-gap);
+  background-position: center;
+}
+
+.dot-banner-grid {
+  background-image: radial-gradient(
+    circle,
+    var(--dot-color) 0.75px,
+    transparent 1.25px
+  );
+}
+
+.dot-banner-lit {
+  background-image: radial-gradient(
+    circle,
+    var(--dot-lit) 0.85px,
+    transparent 1.35px
+  );
+  opacity: 0;
+  -webkit-mask-image: radial-gradient(
+    110px circle at var(--dot-x) var(--dot-y),
+    #000 0%,
+    rgba(0, 0, 0, 0.35) 45%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    110px circle at var(--dot-x) var(--dot-y),
+    #000 0%,
+    rgba(0, 0, 0, 0.35) 45%,
+    transparent 100%
+  );
+  transition:
+    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    --dot-x 450ms cubic-bezier(0.22, 1, 0.36, 1),
+    --dot-y 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dot-banner-lit[data-active="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-banner-lit {
+    transition: opacity 200ms linear;
+  }
+}
+
+/* Hero — quiet caret for the one-shot type-in */
+.hero-type-cursor {
+  font-weight: 300;
+  color: currentColor;
+  opacity: 0.45;
+  animation: hero-type-caret 1.1s steps(1, end) infinite;
+}
+
+@keyframes hero-type-caret {
+  0%,
+  49% {
+    opacity: 0.45;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-type-cursor {
+    animation: none;
+    display: none;
+  }
 }
