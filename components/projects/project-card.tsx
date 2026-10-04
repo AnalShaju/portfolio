@@ -2,7 +2,6 @@ import Image from "next/image"
 import {
   ArrowUpRight,
   Bot,
-  ChevronRight,
   Globe2,
   QrCode,
   Sparkles,
@@ -31,21 +30,22 @@ function ProjectIconBox({
   logo?: string
 }) {
   if (logo) {
-    return (
-      <span
-        aria-hidden
-        className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border"
-      >
+  return (
+    <span
+      aria-hidden
+      className="project-icon-box flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md border"
+    >
         <Image
           src={logo}
           alt=""
           width={32}
           height={32}
+          sizes="32px"
           unoptimized={logo.endsWith(".ico")}
           className="size-full object-contain p-1"
         />
-      </span>
-    )
+    </span>
+  )
   }
 
   const Icon = PROJECT_ICONS[icon]
@@ -53,7 +53,7 @@ function ProjectIconBox({
   return (
     <span
       aria-hidden
-      className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground"
+      className="project-icon-box flex size-8 shrink-0 items-center justify-center rounded-md border text-muted-foreground"
     >
       <Icon className="size-4" strokeWidth={1.75} />
     </span>
@@ -87,12 +87,9 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <article
       className={cn(
-        "group relative rounded-lg border border-border bg-transparent",
-        "px-4 py-4 transition-[border-color,background-color,transform] duration-200 ease-out",
-        "hover:-translate-y-px hover:border-foreground/20 hover:bg-muted/40",
-        "focus-within:border-foreground/20 focus-within:bg-muted/40",
-        "dark:hover:border-white/20 dark:hover:bg-white/[0.03]",
-        "dark:focus-within:border-white/20 dark:focus-within:bg-white/[0.03]"
+        "project-card group relative rounded-lg border",
+        "px-4 py-4 transition-[border-color,background-color,box-shadow,transform] duration-200 ease-out",
+        "hover:-translate-y-px"
       )}
     >
       {primaryHref ? (
@@ -144,10 +141,6 @@ export function ProjectCard({ project }: { project: Project }) {
               <ExternalTextLink href={project.npmUrl}>npm</ExternalTextLink>
             ) : null}
           </div>
-          <ChevronRight
-            className="size-3.5 text-muted-foreground/50 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground"
-            aria-hidden
-          />
         </div>
       </div>
     </article>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react"
 import Link from "next/link"
-import { HomeIcon, MailIcon, PencilIcon } from "lucide-react"
+import { HomeIcon, MailIcon } from "lucide-react"
 import { useReducedMotion } from "motion/react"
 
 import { DockThemeToggle } from "@/components/dock-theme-toggle"
@@ -42,7 +42,6 @@ const SECTION_IDS = ["home", "experience", "projects", "more"]
 
 const items = [
   { href: "#home", label: "Home", icon: HomeIcon, external: false, section: "home" },
-  { href: "#about", label: "About", icon: PencilIcon, external: false },
   {
     href: site.social.github,
     label: "GitHub",
@@ -122,7 +121,7 @@ export function SiteDock() {
   return (
     <nav
       aria-label="Primary"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-5 pt-2"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-2 pb-4 pt-2 sm:px-3 sm:pb-5"
     >
       <svg aria-hidden width="0" height="0" className="absolute">
         <filter
@@ -157,7 +156,7 @@ export function SiteDock() {
         iconDistance={110}
         interactive={interactive}
         pressable={!reduceMotion}
-        className="pointer-events-auto gap-1 sm:gap-1.5"
+        className="pointer-events-auto max-w-[calc(100vw-1rem)] gap-0.5 sm:gap-1.5"
       >
         {items.map((item) => {
           const Icon = item.icon

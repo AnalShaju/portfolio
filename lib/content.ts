@@ -23,9 +23,9 @@ export const site = {
     "Always learning — exploring new tools, technologies, and better ways to build.",
   social: {
     github: "https://github.com/AnalShaju",
-    linkedin: "https://linkedin.com/in/",
-    x: "https://x.com/",
-    email: "mailto:hello@example.com",
+    linkedin: "https://www.linkedin.com/in/anal-shaju",
+    x: "https://x.com/analshaju_",
+    email: "mailto:analshajuwork404@gmail.com",
   },
   experience: {
     title: "Independent Developer",

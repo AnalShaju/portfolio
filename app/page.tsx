@@ -9,7 +9,7 @@ import { site } from "@/lib/content";
 
 export default function Home() {
   return (
-    <div className="min-h-full px-3 pb-28 sm:px-6">
+    <div className="min-h-full px-2.5 pb-28 sm:px-6">
       <SiteFrame>
         <div className="p-4 sm:p-6">
           <PhotoBanner />

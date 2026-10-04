@@ -15,7 +15,6 @@ export type Project = {
   liveUrl?: string
   githubUrl?: string
   npmUrl?: string
-  featured?: boolean
   status?: string
 }
 

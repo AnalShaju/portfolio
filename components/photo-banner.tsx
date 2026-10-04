@@ -1,10 +1,29 @@
 "use client"
 
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export function PhotoBanner() {
   const litRef = useRef<HTMLDivElement>(null)
   const frame = useRef<number | null>(null)
+  const [interactive, setInteractive] = useState(false)
+
+  useEffect(() => {
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)")
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+
+    const update = () => {
+      setInteractive(finePointer.matches && !reduceMotion.matches)
+    }
+
+    update()
+    finePointer.addEventListener("change", update)
+    reduceMotion.addEventListener("change", update)
+    return () => {
+      finePointer.removeEventListener("change", update)
+      reduceMotion.removeEventListener("change", update)
+      if (frame.current !== null) cancelAnimationFrame(frame.current)
+    }
+  }, [])
 
   const place = (e: React.PointerEvent<HTMLDivElement>) => {
     const lit = litRef.current
@@ -21,10 +40,10 @@ export function PhotoBanner() {
   }
 
   const handleEnter = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!interactive) return
     const lit = litRef.current
     if (!lit || e.pointerType !== "mouse") return
     const rect = e.currentTarget.getBoundingClientRect()
-    // Snap the glow to the entry point so it doesn't sweep in from off-screen.
     lit.style.transition = "opacity 600ms cubic-bezier(0.22, 1, 0.36, 1)"
     lit.style.setProperty("--dot-x", `${e.clientX - rect.left}px`)
     lit.style.setProperty("--dot-y", `${e.clientY - rect.top}px`)
@@ -35,7 +54,7 @@ export function PhotoBanner() {
   }
 
   const handleMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType !== "mouse") return
+    if (!interactive || e.pointerType !== "mouse") return
     place(e)
   }
 
@@ -46,13 +65,15 @@ export function PhotoBanner() {
   return (
     <div
       aria-hidden
-      onPointerEnter={handleEnter}
-      onPointerMove={handleMove}
-      onPointerLeave={handleLeave}
-      className="dot-banner relative mx-auto h-[140px] w-full overflow-hidden rounded-lg border sm:h-[160px]"
+      onPointerEnter={interactive ? handleEnter : undefined}
+      onPointerMove={interactive ? handleMove : undefined}
+      onPointerLeave={interactive ? handleLeave : undefined}
+      className="dot-banner relative mx-auto h-[140px] w-full overflow-hidden rounded-lg sm:h-[160px]"
     >
       <div className="dot-banner-grid" />
-      <div ref={litRef} data-active="false" className="dot-banner-lit" />
+      {interactive ? (
+        <div ref={litRef} data-active="false" className="dot-banner-lit" />
+      ) : null}
     </div>
   )
 }

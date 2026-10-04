@@ -28,8 +28,8 @@ const lensFade = { stiffness: 280, damping: 34, mass: 0.6 }
  * CSS !important on .dock-glass-base / .dark .dock-glass-base.
  */
 const glassStyle: React.CSSProperties = {
-  WebkitBackdropFilter: "blur(20px) saturate(180%)",
-  backdropFilter: "blur(20px) saturate(180%)",
+  WebkitBackdropFilter: "blur(28px) saturate(180%)",
+  backdropFilter: "blur(28px) saturate(180%)",
 }
 
 export interface DockProps {

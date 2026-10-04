@@ -1,10 +1,12 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
 
 import { cn } from "@/lib/utils"
+
+const emptySubscribe = () => () => {}
 
 /** Theme switch for the floating Dock — not a nav link, no scroll-spy active state. */
 export function DockThemeToggle({
@@ -15,12 +17,7 @@ export function DockThemeToggle({
   iconClassName?: string
 }) {
   const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false)
   const isDark = mounted && resolvedTheme === "dark"
 
   return (

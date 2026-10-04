@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -22,17 +21,17 @@
 }
 
 :root {
-  --background: #fafaf8;
-  --foreground: #171715;
-  --muted: #f0efe9;
-  --muted-foreground: #6f6f68;
-  --border: #e6e4dd;
-  --ring: #35473b;
-  --accent: #f0efe9;
-  --accent-foreground: #171715;
-  --status: #35473b;
-  --status-foreground: #fafaf8;
-  --stripe: color-mix(in srgb, #171715 7%, transparent);
+  /* Warm daylight — Apple liquid glass on cream, not flat white */
+  --background: #f8f7f4;
+  --foreground: #1a1a1a;
+  --muted: rgba(255, 252, 248, 0.62);
+  --muted-foreground: #6b675f;
+  --border: rgba(58, 54, 48, 0.14);
+  --ring: #3d4a42;
+  --accent: rgba(255, 252, 248, 0.72);
+  --accent-foreground: #1a1a1a;
+  --status: #3d4a42;
+  --status-foreground: #f8f7f4;
 }
 
 .dark {
@@ -46,7 +45,6 @@
   --accent-foreground: #fafafa;
   --status: #9fc2a8;
   --status-foreground: #000000;
-  --stripe: color-mix(in srgb, #fafafa 7%, transparent);
 }
 
 @layer base {
@@ -61,6 +59,11 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  html:not(.dark),
+  html:not(.dark) body {
+    background-color: #f8f7f4;
   }
 
   html.dark,
@@ -80,27 +83,26 @@
    backdrop-filter ancestor would stop the lens from sampling the page.
    Materials follow Apple depth: frost + saturate + bright top edge catch. */
 .dock-glass-base {
-  --dock-blur: blur(20px) saturate(180%);
+  --dock-blur: blur(28px) saturate(180%);
   position: absolute;
   inset: 0;
   z-index: 0;
   border-radius: 9999px;
   pointer-events: none;
   /*
-   * Light liquid glass (Apple material recipe):
-   * rgba white ~0.55–0.6 + blur(20px) saturate(180%) + bright top edge.
-   * Outer warm-gray stroke keeps the pill readable on #fafaf8.
+   * Light liquid glass (warm daylight):
+   * translucent warm frost + blur + warm-gray rim — not opaque white.
    */
-  background-color: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background-color: rgba(255, 252, 248, 0.42);
+  border: 1px solid rgba(58, 54, 48, 0.16);
   box-shadow:
-    0 12px 40px -12px rgba(0, 0, 0, 0.18),
-    0 4px 14px -4px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(40, 38, 34, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 14px 36px -14px rgba(40, 38, 34, 0.22),
+    0 4px 12px -4px rgba(40, 38, 34, 0.1),
+    0 0 0 0.5px rgba(58, 54, 48, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
     inset 0 -1px 0 rgba(40, 38, 34, 0.04);
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
   transition:
     background-color 320ms ease-in-out,
     border-color 320ms ease-in-out,
@@ -111,13 +113,13 @@
 .dock-glass-base::before {
   content: "";
   position: absolute;
-  left: 10%;
-  right: 10%;
+  left: 12%;
+  right: 12%;
   top: 1px;
   height: 1px;
   border-radius: 9999px;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.85);
 }
 
 /* Micro noise — material presence on flat off-white */
@@ -220,7 +222,7 @@
 }
 
 .dock-item {
-  color: #1f1f1d;
+  color: #1a1a1a;
   transition: color 320ms ease-in-out !important;
 }
 
@@ -241,13 +243,13 @@
   border-radius: 9999px;
   pointer-events: none;
   /* Light: translucent raised chip — not a solid gray disc */
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 252, 248, 0.4);
   box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(40, 38, 34, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  -webkit-backdrop-filter: blur(10px) saturate(150%);
-  backdrop-filter: blur(10px) saturate(150%);
+    0 1px 4px rgba(40, 38, 34, 0.06),
+    inset 0 0 0 1px rgba(58, 54, 48, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
   transition:
     background 320ms ease-in-out,
     box-shadow 320ms ease-in-out !important;
@@ -281,7 +283,7 @@
 @media (prefers-reduced-transparency: reduce) {
   .dock-glass-base {
     --dock-blur: none;
-    background-color: rgba(250, 250, 248, 0.94);
+    background-color: rgba(248, 247, 244, 0.96);
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
@@ -302,7 +304,7 @@
   }
 
   .section-glass-base {
-    background-color: rgba(250, 250, 248, 0.94);
+    background-color: rgba(248, 247, 244, 0.96);
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
@@ -315,6 +317,20 @@
   .section-glass-base::after {
     display: none;
   }
+
+  .project-card,
+  .tech-pill {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .project-card {
+    background-color: rgba(255, 252, 248, 0.92);
+  }
+
+  .tech-pill {
+    background-color: rgba(255, 252, 248, 0.92);
+  }
 }
 
 /* Section title pill — same liquid-glass recipe as the dock, scaled for labels */
@@ -324,16 +340,16 @@
   z-index: 0;
   border-radius: 9999px;
   pointer-events: none;
-  background-color: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background-color: rgba(255, 252, 248, 0.45);
+  border: 1px solid rgba(58, 54, 48, 0.14);
   box-shadow:
-    0 6px 18px -8px rgba(0, 0, 0, 0.16),
-    0 2px 6px -2px rgba(0, 0, 0, 0.06),
-    0 0 0 1px rgba(40, 38, 34, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(40, 38, 34, 0.04);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  backdrop-filter: blur(18px) saturate(180%);
+    0 6px 16px -10px rgba(40, 38, 34, 0.16),
+    0 2px 6px -2px rgba(40, 38, 34, 0.06),
+    0 0 0 0.5px rgba(58, 54, 48, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(40, 38, 34, 0.03);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
 }
 
 .section-glass-base::before {
@@ -395,11 +411,11 @@
 
 /* Small # mark for the Projects closing note */
 .note-glass-mark {
-  background-color: rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(40, 38, 34, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  -webkit-backdrop-filter: blur(10px) saturate(160%);
-  backdrop-filter: blur(10px) saturate(160%);
+  background-color: rgba(255, 252, 248, 0.45);
+  border: 1px solid rgba(58, 54, 48, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
 }
 
 .dark .note-glass-mark {
@@ -436,19 +452,19 @@
 
 .dot-banner {
   --dot-gap: 18px;
-  /* Light: warm editorial texture — readable on off-white, not blueprint-dark */
-  --dot-color: rgba(52, 48, 42, 0.3);
-  --dot-lit: rgba(42, 38, 32, 0.48);
+  /* Light: soft warm gray, ~25% more visible than prior faint pass */
+  --dot-color: rgba(92, 86, 78, 0.33);
+  --dot-lit: rgba(72, 66, 58, 0.48);
   background-color: #f8f7f4;
-  border-color: rgba(58, 54, 48, 0.22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: none;
+  box-shadow: none;
 }
 
 .dark .dot-banner {
-  --dot-color: rgba(255, 255, 255, 0.26);
-  --dot-lit: rgba(255, 255, 255, 0.55);
+  --dot-color: rgba(255, 255, 255, 0.38);
+  --dot-lit: rgba(255, 255, 255, 0.64);
   background-color: #000000;
-  border-color: var(--border);
+  border: none;
   box-shadow: none;
 }
 
@@ -502,6 +518,74 @@
   .dot-banner-lit {
     transition: opacity 200ms linear;
   }
+}
+
+/* Project cards — warm frost in light, keep dark surface language */
+.project-card {
+  background-color: rgba(255, 252, 248, 0.38);
+  border-color: rgba(58, 54, 48, 0.12);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 6px 18px -14px rgba(40, 38, 34, 0.12);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+}
+
+.project-card:hover,
+.project-card:focus-within {
+  background-color: rgba(255, 252, 248, 0.58);
+  border-color: rgba(58, 54, 48, 0.2);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 10px 24px -16px rgba(40, 38, 34, 0.16);
+}
+
+.dark .project-card {
+  background-color: transparent;
+  border-color: var(--border);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.dark .project-card:hover,
+.dark .project-card:focus-within {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+/* Tech pills — frosted chips in light mode */
+.tech-pill {
+  background-color: rgba(255, 252, 248, 0.5);
+  border-color: rgba(58, 54, 48, 0.14);
+  color: #5c584f;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 1px 2px rgba(40, 38, 34, 0.04);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
+}
+
+.dark .tech-pill {
+  background-color: color-mix(in srgb, var(--muted) 70%, transparent);
+  border-color: var(--border);
+  color: var(--muted-foreground);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.project-icon-box {
+  background-color: rgba(255, 252, 248, 0.45);
+  border-color: rgba(58, 54, 48, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.dark .project-icon-box {
+  background-color: transparent;
+  border-color: var(--border);
+  box-shadow: none;
 }
 
 /* Hero — quiet caret for the one-shot type-in */

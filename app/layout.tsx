@@ -9,8 +9,10 @@ import "./globals.css"
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
   variable: "--font-public-sans",
   display: "swap",
+  preload: true,
 })
 
 export const metadata: Metadata = {
@@ -20,8 +22,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${publicSans.variable} h-full`} suppressHydrationWarning>
-      <body className="min-h-full bg-background font-sans text-foreground antialiased">
+    <html lang="en" className={`${publicSans.variable} h-full overflow-x-clip`} suppressHydrationWarning>
+      <body className="min-h-full overflow-x-clip bg-background font-sans text-foreground antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
           <SiteDock />
