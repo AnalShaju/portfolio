@@ -174,9 +174,11 @@
   left: 0;
   top: 50%;
   z-index: 1;
-  width: 50px;
-  height: 50px;
-  margin-top: -25px;
+  --dock-lens-size: 54px;
+  width: var(--dock-lens-size);
+  height: var(--dock-lens-size);
+  margin-top: calc(var(--dock-lens-size) / -2);
+  margin-left: calc(var(--dock-lens-size) / -2);
   border-radius: 9999px;
   pointer-events: none;
   will-change: transform, opacity;
@@ -207,6 +209,12 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+@media (min-width: 48rem) {
+  .dock-lens {
+    --dock-lens-size: 48px;
+  }
+}
+
 /* Refraction only while the cursor is over the dock; url() is Chromium-only,
    other engines keep the plain declaration above it. */
 .dock-lens[data-on="true"] {
@@ -233,6 +241,7 @@
 .dock-item svg {
   transform: scale(var(--dock-icon-scale, 1));
   transform-origin: center;
+  will-change: transform;
   color: inherit;
   transition: color 320ms ease-in-out !important;
 }

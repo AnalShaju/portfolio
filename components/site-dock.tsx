@@ -36,7 +36,8 @@ function XIcon(props: IconProps) {
   )
 }
 
-const iconClass = "size-4"
+const iconClass = "size-[22px] md:size-[18px]"
+const slotClass = "size-11 md:size-10"
 
 const SECTION_IDS = ["home", "experience", "projects", "more"]
 
@@ -116,12 +117,12 @@ export function SiteDock() {
   const reduceMotion = useReducedMotion()
   const pointer = usePointerKind()
   const activeSection = useActiveSection(SECTION_IDS)
-  const interactive = pointer === "fine" && !reduceMotion
+  const interactive = reduceMotion !== true
 
   return (
     <nav
       aria-label="Primary"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-2 pb-4 pt-2 sm:px-3 sm:pb-5"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]"
     >
       <svg aria-hidden width="0" height="0" className="absolute">
         <filter
@@ -151,12 +152,9 @@ export function SiteDock() {
       </svg>
 
       <Dock
-        iconSize={pointer === "coarse" ? 36 : 34}
-        iconMagnification={46}
-        iconDistance={110}
         interactive={interactive}
-        pressable={!reduceMotion}
-        className="pointer-events-auto max-w-[calc(100vw-1rem)] gap-0.5 sm:gap-1.5"
+        pressable={interactive && pointer === "fine"}
+        className="pointer-events-auto h-16 w-[calc(100vw-24px)] max-w-[22rem] justify-between px-2.5 sm:max-w-[21rem] md:h-14 md:w-max md:max-w-none md:justify-start md:gap-1.5 md:px-2"
       >
         {items.map((item) => {
           const Icon = item.icon
@@ -167,7 +165,7 @@ export function SiteDock() {
             "section" in item && item.section === activeSection
 
           return (
-            <DockIcon key={item.label} active={isActive}>
+            <DockIcon key={item.label} active={isActive} className={slotClass}>
               {item.external ? (
                 <a
                   href={item.href}
@@ -198,8 +196,8 @@ export function SiteDock() {
           )
         })}
 
-        <DockIcon>
-          <DockThemeToggle />
+        <DockIcon className={slotClass}>
+          <DockThemeToggle iconClassName={iconClass} />
         </DockIcon>
       </Dock>
     </nav>
