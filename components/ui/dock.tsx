@@ -7,14 +7,15 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
+  useVelocity,
 } from "motion/react"
 import type { MotionProps, MotionStyle } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
-const DEFAULT_MAX_SCALE = 1.5
+const DEFAULT_MAX_SCALE = 1.55
 /* Falloff per slot of distance — neighbours get a small lift, the rest none */
-const FALLOFF_BASE = 0.3
+const FALLOFF_BASE = 0.35
 /* Boost below this fraction fades to zero so far icons rest at exactly 1 */
 const FALLOFF_FLOOR = 0.05
 /* Movement (px) before a press becomes a selector drag rather than a tap */
@@ -24,10 +25,13 @@ const RELEASE_SLACK = 16
 /* Window after a drag ends during which the trailing native click is swallowed */
 const CLICK_SUPPRESS_MS = 400
 
-/* Apple critically-damped springs — settle smoothly, no bounce */
-const iconSpring = { stiffness: 380, damping: 34, mass: 0.6, restDelta: 0.001 }
-const selectorSpring = { stiffness: 520, damping: 40, mass: 0.6 }
-const selectorFade = { stiffness: 320, damping: 32, mass: 0.6 }
+/* Icons settle without bounce; the glass is slightly underdamped (~0.85) so it
+   carries a touch of inertia yet stays under the finger (~120ms response). */
+const iconSpring = { stiffness: 520, damping: 40, mass: 0.5, restDelta: 0.001 }
+const selectorSpring = { stiffness: 600, damping: 29, mass: 0.5, restDelta: 0.01 }
+const selectorFade = { stiffness: 340, damping: 30, mass: 0.6 }
+/* Speed (px/s) at which the glass reaches its full liquid stretch */
+const STRETCH_SPEED = 2400
 
 /*
  * Inline backdrop-filter as a Chromium/embed fallback (some hosts strip
@@ -72,7 +76,20 @@ function Dock({
   const selectorX = useMotionValue(0)
   const selectorXSpring = useSpring(selectorX, selectorSpring)
   const selectorOpacity = useSpring(0, selectorFade)
-  const selectorScale = useSpring(0.9, selectorFade)
+  const selectorScale = useSpring(0.85, selectorFade)
+  const selectorVelocity = useVelocity(selectorXSpring)
+  const stretch = useTransform(selectorVelocity, (v) =>
+    Math.min(Math.abs(v) / STRETCH_SPEED, 1)
+  )
+  const selectorScaleX = useTransform(stretch, (s) => 1 + 0.08 * s)
+  const selectorScaleY = useTransform(stretch, (s) => 1 - 0.04 * s)
+  // The highlight trails the motion, like light sliding across a droplet.
+  const shineX = useTransform(
+    selectorVelocity,
+    [-STRETCH_SPEED, 0, STRETCH_SPEED],
+    ["7px", "0px", "-7px"],
+    { clamp: true }
+  )
   const [selecting, setSelecting] = useState(false)
   const offTimer = useRef<number | undefined>(undefined)
   const press = useRef<Press | null>(null)
@@ -80,8 +97,20 @@ function Dock({
   const allowClick = useRef(false)
   const centers = useRef<number[]>([])
   const pitch = useRef(0)
+  const dragging = useRef(false)
+  const overDock = useRef(false)
+  const dockLeft = useRef(0)
 
   useEffect(() => () => window.clearTimeout(offTimer.current), [])
+
+  // While dragging, magnify from where the glass actually is, not the raw pointer.
+  useEffect(
+    () =>
+      selectorXSpring.on("change", (v) => {
+        if (dragging.current && overDock.current) pointerX.set(v + dockLeft.current)
+      }),
+    [selectorXSpring, pointerX]
+  )
 
   const items = () =>
     Array.from(ref.current?.querySelectorAll<HTMLElement>("[data-dock-item]") ?? [])
@@ -145,7 +174,7 @@ function Dock({
 
   const hideSelector = () => {
     selectorOpacity.set(0)
-    selectorScale.set(0.9)
+    selectorScale.set(0.85)
     window.clearTimeout(offTimer.current)
     offTimer.current = window.setTimeout(() => setSelecting(false), 320)
   }
@@ -167,6 +196,7 @@ function Dock({
     }
     if (!p.dragged) return
 
+    dragging.current = false
     suppressClickUntil.current = performance.now() + CLICK_SUPPRESS_MS
     hideSelector()
     const rect = ref.current?.getBoundingClientRect()
@@ -199,13 +229,16 @@ function Dock({
         p.dragged = true
         // Own the gesture from here on, whichever item received the press.
         ref.current?.setPointerCapture(e.pointerId)
+        dragging.current = true
         showSelector(clampX(e.clientX, rect) - rect.left)
       }
       const x = clampX(e.clientX, rect)
       const over = isOverDock(e, rect)
+      dockLeft.current = rect.left
+      overDock.current = over
       selectorX.set(x - rect.left)
       selectorOpacity.set(over ? 1 : 0.45)
-      pointerX.set(over ? x : Infinity)
+      pointerX.set(over ? selectorXSpring.get() + rect.left : Infinity)
       return
     }
 
@@ -235,6 +268,14 @@ function Dock({
   // Long-press menus and native link drags would cancel the pointer mid-drag.
   const preventDuringPress = (e: React.SyntheticEvent) => {
     if (press.current || e.type === "dragstart") e.preventDefault()
+  }
+
+  const selectorStyle: MotionStyle = {
+    x: selectorXSpring,
+    scale: selectorScale,
+    scaleX: selectorScaleX,
+    scaleY: selectorScaleY,
+    opacity: selectorOpacity,
   }
 
   let index = 0
@@ -270,14 +311,24 @@ function Dock({
       )}
     >
       <div aria-hidden className="dock-glass-base" style={glassStyle} />
-      {rendered}
+      {/* Glass body sits under the icons so the magnified icon stays crisp;
+          the rim and shine sit above them so the icon reads as inside the lens. */}
       {interactive ? (
         <motion.div
           ref={selectorRef}
           aria-hidden
           data-active={selecting}
           className="dock-selector"
-          style={{ x: selectorXSpring, scale: selectorScale, opacity: selectorOpacity }}
+          style={selectorStyle}
+        />
+      ) : null}
+      {rendered}
+      {interactive ? (
+        <motion.div
+          aria-hidden
+          data-active={selecting}
+          className="dock-selector-shine"
+          style={{ ...selectorStyle, "--shine-x": shineX } as unknown as MotionStyle}
         />
       ) : null}
     </div>

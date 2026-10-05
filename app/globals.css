@@ -169,14 +169,16 @@
   mix-blend-mode: soft-light;
 }
 
-/* Drag selector — a movable piece of the dock's glass, shown only while dragging */
-.dock-selector {
-  --dock-selector-w: 58px;
-  --dock-selector-h: 50px;
+/* Drag selector — a lens of clear liquid glass, shown only while dragging.
+   .dock-selector is the glass body (under the icons, so they stay crisp);
+   .dock-selector-shine is its rim and highlights (over the icons). */
+.dock-selector,
+.dock-selector-shine {
+  --dock-selector-w: 56px;
+  --dock-selector-h: 52px;
   position: absolute;
   left: 0;
   top: 50%;
-  z-index: 3;
   width: var(--dock-selector-w);
   height: var(--dock-selector-h);
   margin-top: calc(var(--dock-selector-h) / -2);
@@ -185,66 +187,82 @@
   pointer-events: none;
   opacity: 0;
   will-change: transform, opacity;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 252, 248, 0.06) 55%,
-    rgba(255, 252, 248, 0.14) 100%
-  );
-  border: 1px solid rgba(58, 54, 48, 0.12);
-  box-shadow:
-    0 8px 20px -10px rgba(40, 38, 34, 0.3),
-    0 1px 3px rgba(40, 38, 34, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(40, 38, 34, 0.05);
-}
-
-.dock-selector[data-active="true"] {
-  -webkit-backdrop-filter: blur(1.5px) saturate(160%) brightness(1.03);
-  backdrop-filter: blur(1.5px) saturate(160%) brightness(1.03);
-}
-
-/* Specular rim, matching the dock's */
-.dock-selector::before {
-  content: "";
-  position: absolute;
-  left: 18%;
-  right: 18%;
-  top: 1px;
-  height: 1px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.dark .dock-selector {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.03) 55%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow:
-    0 10px 24px -10px rgba(0, 0, 0, 0.75),
-    0 1px 3px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.dark .dock-selector[data-active="true"] {
-  -webkit-backdrop-filter: blur(1.5px) saturate(170%) brightness(1.12);
-  backdrop-filter: blur(1.5px) saturate(170%) brightness(1.12);
-}
-
-.dark .dock-selector::before {
-  background: rgba(255, 255, 255, 0.35);
 }
 
 @media (min-width: 48rem) {
-  .dock-selector {
-    --dock-selector-w: 52px;
-    --dock-selector-h: 44px;
+  .dock-selector,
+  .dock-selector-shine {
+    --dock-selector-w: 50px;
+    --dock-selector-h: 46px;
   }
+}
+
+.dock-selector {
+  z-index: 1;
+  background: rgba(255, 252, 248, 0.16);
+  box-shadow:
+    0 10px 22px -12px rgba(40, 38, 34, 0.32),
+    0 2px 6px -2px rgba(40, 38, 34, 0.1);
+}
+
+.dock-selector[data-active="true"] {
+  -webkit-backdrop-filter: blur(14px) saturate(170%) brightness(1.06);
+  backdrop-filter: blur(14px) saturate(170%) brightness(1.06);
+}
+
+.dock-selector-shine {
+  z-index: 3;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background:
+    radial-gradient(
+      circle at calc(30% + var(--shine-x, 0px)) 20%,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.12) 22%,
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse 70% 40% at calc(50% - var(--shine-x, 0px)) 100%,
+      rgba(255, 255, 255, 0.26),
+      transparent 70%
+    );
+  box-shadow:
+    0 0 0 0.5px rgba(58, 54, 48, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.75),
+    inset 0 -3px 6px -3px rgba(40, 38, 34, 0.14),
+    inset 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.dark .dock-selector {
+  background: rgba(40, 40, 42, 0.26);
+  box-shadow:
+    0 12px 26px -12px rgba(0, 0, 0, 0.8),
+    0 2px 6px -2px rgba(0, 0, 0, 0.45);
+}
+
+.dark .dock-selector[data-active="true"] {
+  -webkit-backdrop-filter: blur(14px) saturate(160%) brightness(1.2);
+  backdrop-filter: blur(14px) saturate(160%) brightness(1.2);
+}
+
+.dark .dock-selector-shine {
+  border-color: rgba(255, 255, 255, 0.24);
+  background:
+    radial-gradient(
+      circle at calc(30% + var(--shine-x, 0px)) 20%,
+      rgba(255, 255, 255, 0.32),
+      rgba(255, 255, 255, 0.06) 22%,
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse 70% 40% at calc(50% - var(--shine-x, 0px)) 100%,
+      rgba(255, 255, 255, 0.12),
+      transparent 70%
+    );
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -3px 7px -3px rgba(0, 0, 0, 0.4),
+    inset 0 0 10px rgba(255, 255, 255, 0.06);
 }
 
 .dock-item {
@@ -301,7 +319,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dock-selector {
+  .dock-selector,
+  .dock-selector-shine {
     display: none;
   }
 
@@ -333,7 +352,6 @@
 
   .dock-selector,
   .dock-selector[data-active="true"] {
-    z-index: 1;
     background: rgba(240, 238, 234, 0.96);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -342,6 +360,10 @@
   .dark .dock-selector,
   .dark .dock-selector[data-active="true"] {
     background: rgba(44, 44, 44, 0.96);
+  }
+
+  .dock-selector-shine {
+    background: none;
   }
 
   .dock-active-pill {
