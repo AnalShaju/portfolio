@@ -124,33 +124,6 @@ export function SiteDock() {
       aria-label="Primary"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]"
     >
-      <svg aria-hidden width="0" height="0" className="absolute">
-        <filter
-          id="dock-refraction"
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          colorInterpolationFilters="sRGB"
-        >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.012 0.018"
-            numOctaves={1}
-            seed={4}
-            result="noise"
-          />
-          <feGaussianBlur in="noise" stdDeviation="2" result="soft" />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="soft"
-            scale="10"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
-      </svg>
-
       <Dock
         interactive={interactive}
         pressable={interactive && pointer === "fine"}

@@ -169,64 +169,82 @@
   mix-blend-mode: soft-light;
 }
 
-.dock-lens {
+/* Drag selector — a movable piece of the dock's glass, shown only while dragging */
+.dock-selector {
+  --dock-selector-w: 58px;
+  --dock-selector-h: 50px;
   position: absolute;
   left: 0;
   top: 50%;
-  z-index: 1;
-  --dock-lens-size: 54px;
-  width: var(--dock-lens-size);
-  height: var(--dock-lens-size);
-  margin-top: calc(var(--dock-lens-size) / -2);
-  margin-left: calc(var(--dock-lens-size) / -2);
+  z-index: 3;
+  width: var(--dock-selector-w);
+  height: var(--dock-selector-h);
+  margin-top: calc(var(--dock-selector-h) / -2);
+  margin-left: calc(var(--dock-selector-w) / -2);
   border-radius: 9999px;
   pointer-events: none;
+  opacity: 0;
   will-change: transform, opacity;
-  /* Light: soft liquid lens — avoid opaque white wash */
-  background: radial-gradient(
-    circle at 50% 30%,
-    rgba(255, 255, 255, 0.14),
-    rgba(255, 255, 255, 0.04) 42%,
-    transparent 70%
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 252, 248, 0.06) 55%,
+    rgba(255, 252, 248, 0.14) 100%
   );
+  border: 1px solid rgba(58, 54, 48, 0.12);
   box-shadow:
-    inset 0 0 0 1px rgba(40, 38, 34, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  transition:
-    background 320ms ease-in-out,
-    box-shadow 320ms ease-in-out !important;
+    0 8px 20px -10px rgba(40, 38, 34, 0.3),
+    0 1px 3px rgba(40, 38, 34, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(40, 38, 34, 0.05);
 }
 
-.dark .dock-lens {
-  background: radial-gradient(
-    circle at 50% 30%,
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.03) 45%,
-    transparent 72%
+.dock-selector[data-active="true"] {
+  -webkit-backdrop-filter: blur(1.5px) saturate(160%) brightness(1.03);
+  backdrop-filter: blur(1.5px) saturate(160%) brightness(1.03);
+}
+
+/* Specular rim, matching the dock's */
+.dock-selector::before {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 1px;
+  height: 1px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dark .dock-selector {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.03) 55%,
+    rgba(255, 255, 255, 0.06) 100%
   );
+  border-color: rgba(255, 255, 255, 0.16);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    0 10px 24px -10px rgba(0, 0, 0, 0.75),
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dark .dock-selector[data-active="true"] {
+  -webkit-backdrop-filter: blur(1.5px) saturate(170%) brightness(1.12);
+  backdrop-filter: blur(1.5px) saturate(170%) brightness(1.12);
+}
+
+.dark .dock-selector::before {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 @media (min-width: 48rem) {
-  .dock-lens {
-    --dock-lens-size: 48px;
+  .dock-selector {
+    --dock-selector-w: 52px;
+    --dock-selector-h: 44px;
   }
-}
-
-/* Refraction only while the cursor is over the dock; url() is Chromium-only,
-   other engines keep the plain declaration above it. */
-.dock-lens[data-on="true"] {
-  -webkit-backdrop-filter: blur(1px) brightness(1.04) saturate(1.15);
-  backdrop-filter: blur(1px) brightness(1.04) saturate(1.15);
-  backdrop-filter: url(#dock-refraction) brightness(1.04) saturate(1.15);
-}
-
-.dark .dock-lens[data-on="true"] {
-  -webkit-backdrop-filter: blur(1px) brightness(1.1) saturate(1.3);
-  backdrop-filter: blur(1px) brightness(1.1) saturate(1.3);
-  backdrop-filter: url(#dock-refraction) brightness(1.1) saturate(1.3);
 }
 
 .dock-item {
@@ -283,7 +301,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dock-lens {
+  .dock-selector {
     display: none;
   }
 
@@ -309,9 +327,21 @@
   }
 
   .dock-glass-base::before,
-  .dock-glass-base::after,
-  .dock-lens {
+  .dock-glass-base::after {
     display: none;
+  }
+
+  .dock-selector,
+  .dock-selector[data-active="true"] {
+    z-index: 1;
+    background: rgba(240, 238, 234, 0.96);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .dark .dock-selector,
+  .dark .dock-selector[data-active="true"] {
+    background: rgba(44, 44, 44, 0.96);
   }
 
   .dock-active-pill {
